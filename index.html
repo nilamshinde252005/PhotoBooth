@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title> Photobooth</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./style2.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+</head>
+<body>
+  
+
+  <main > <h1> PHOTOBOOTH</h1>
+    <div class="filter-buttons" style="padding-top:40% ;">
+      <button id="Retro" class="active">Retro</button>
+      <button id="Vintage">Vinatge</button>
+    <button id="BW">Black & White</button>
+
+    </div>
+
+    <a id="startLink" class="btn" href="camera.html">Start</a>
+  </main>
+
+  <script>
+    const startLink = document.getElementById('startLink');
+    const retroBtn = document.getElementById('Retro');
+    const vintageBtn = document.getElementById('Vintage');
+    const BWBtn = document.getElementById('BW');
+
+    let currentFilter = 'retro'; // default
+
+    function selectFilter(name, btn) {
+      currentFilter = name;
+      localStorage.setItem('filter', currentFilter); // save choice
+      document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    retroBtn.addEventListener('click', () => selectFilter('retro', retroBtn));
+    vintageBtn.addEventListener('click', () => selectFilter('vintage', vintageBtn));
+    BWBtn.addEventListener('click',()=> selectFilter('BW', BWBtn) );
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Photobooth Strip</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="strip.css" />
+</head>
+
+<body>
+  <main>
+    <div class="header-strip">
+      <button id="backBtn" class="back">←</button>
+      <h1>Your Photo Strip 🎞️</h1>
+    </div>
+
+
+    <div class="strip" id="photoStrip"></div>
+    <button id="downloadBtn">Download</button>
+
+  </main>
+
+  <script>
+    const container = document.getElementById('photoStrip');
+    const photos = JSON.parse(localStorage.getItem('photoStrip')) || [];
+
+    // show thumbnails
+    if (photos.length) {
+      photos.forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = 'Strip photo';
+        container.appendChild(img);
+      });
+    }
+
+    document.getElementById('backBtn').addEventListener('click', () => {
+      window.location.href = 'camera.html';
+    });
+
+    //  load image from dataURL
+    function loadImage(src) {
+      return new Promise((res, rej) => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.onerror = rej;
+        img.src = src;
+      });
+    }
+
+    //.     csss of the img to after download
+    //
+    // build one tall canvas with all photos
+    async function buildStripCanvas(srcs, {
+      targetWidth = 800,       // exported image width (inside padding)
+      gap = 4,                // space between photos
+      padding = 10,            // paper margin
+      bgColor = 'black',     // soft lilac paper
+      corner = 20,             // rounded paper corners
+      photoRadius = 24,        // rounded photo corners
+      photoBorder = 20,        // white “photo” border
+    } = {}) {
+      if (!srcs.length) throw new Error('No photos');
+
+      const imgs = await Promise.all(srcs.map(loadImage));
+
+      // scale each photo to targetWidth minus  border
+      const innerWidth = targetWidth - photoBorder * 2;
+      const scaled = imgs.map(img => {
+        const scale = innerWidth / img.width;
+        return { w: innerWidth, h: Math.round(img.height * scale), img };
+      });
+
+      const totalHeight =
+        padding * 2 +
+        scaled.reduce((sum, s) => sum + (s.h + photoBorder * 2), 0) +
+        gap * (scaled.length - 1);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetWidth + padding * 2;
+      canvas.height = totalHeight;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = bgColor;
+      roundRect(ctx, 0, 0, canvas.width, canvas.height, corner);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+      ctx.lineWidth = 8;
+      roundRect(ctx, 4, 4, canvas.width - 8, canvas.height - 8, corner - 6);
+      ctx.stroke();
+
+      let y = padding;
+      for (const s of scaled) {
+        ctx.fillStyle = 'black';
+        roundRect(ctx, padding, y, s.w + photoBorder * 2, s.h + photoBorder * 2, photoRadius + 4);
+        ctx.fill();
+
+        //////                    /////////                 /////////
+
+
+        ctx.save();
+        roundRect(ctx, padding + photoBorder, y + photoBorder, s.w, s.h, photoRadius);
+        ctx.clip();
+        ctx.drawImage(s.img, padding + photoBorder, y + photoBorder, s.w, s.h);
+        ctx.restore();
+
+        y += s.h + photoBorder * 2 + gap;
+      }
+
+      return canvas;
+
+
+      function roundRect(ctx, x, y, w, h, r) {
+        const rr = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rr);
+        ctx.arcTo(x + w, y + h, x, y + h, rr);
+        ctx.arcTo(x, y + h, x, y, rr);
+        ctx.arcTo(x, y, x + w, y, rr);
+        ctx.closePath();
+      }
+    }
+
+    // download
+    const downloadBtn = document.getElementById('downloadBtn');
+    downloadBtn.addEventListener('click', async () => {
+      if (!photos.length) return alert('No photos to download yet!');
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = 'Preparing…';
+      try {
+        const canvas = await buildStripCanvas(photos);
+        const a = document.createElement('a');
+        const ts = new Date().toISOString().replace(/[:.]/g, '-');
+        a.download = `PhotoBooth_${ts}.png`;
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+      } catch (e) {
+        console.error(e);
+        alert('Could not create the strip. Try again.');
+      } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = 'Download';
+      }
+    });
+  </script>
+
+</body>
+
+</html>

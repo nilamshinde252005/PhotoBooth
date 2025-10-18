@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title> Photobooth</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body class="body">
+
+
+  <main>
+    <div class="preview-wrap" style="margin-top: 2%;">
+      <video id="cam" autoplay playsinline muted></video>
+      <div id="count" aria-live="assertive"></div>
+    </div>
+
+    <div class="controls" style="margin-top: 1%">
+          <a id="startLink" class="back" href="index.html">←</a>
+
+      <button id="start">Start</button>
+      
+    </div>
+
+    <div class="strip" style="display:none;">
+  <img id="p1" alt="Photo 1" />
+  <img id="p2" alt="Photo 2" />
+  <img id="p3" alt="Photo 3" />
+</div>
+
+    <button id="viewStripBtn" style="margin-bottom:30px;">View My Strip</button>
+
+  </main>
+
+  <canvas id="cap"></canvas>
+
+  <script src="camera.js"></script>
+</body>
+</html>
